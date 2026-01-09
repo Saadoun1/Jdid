@@ -1,1 +1,2 @@
-hi
+hi,
+I am Assaad, Trying to learn how to use git properly for my work and i guess my life :) :p
