@@ -1,10 +1,247 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>My Sports Booking</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sports Booking</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f7f7f7;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: auto;
+            background: white;
+            padding: 24px;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            margin-top: 0;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #555;
+        }
+
+        h3 {
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+
+        input[type="text"],
+        select {
+            width: 100%;
+            padding: 12px;
+            margin-top: 8px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            font-size: 16px;
+        }
+
+        .day-scroll {
+            display: flex;
+            gap: 12px;
+            overflow-x: auto;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+
+        .day-scroll::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .day-scroll::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 20px;
+        }
+
+        .day-card,
+        .slot-card {
+            flex: 0 0 auto;
+        }
+
+        .day-card input,
+        .slot-card input {
+            display: none;
+        }
+
+        .day-card label {
+            display: block;
+            min-width: 110px;
+            padding: 14px 12px;
+            border: 1px solid #ccc;
+            border-radius: 14px;
+            background: #fafafa;
+            cursor: pointer;
+            text-align: center;
+            transition: 0.2s ease;
+        }
+
+        .day-card label .main {
+            display: block;
+            font-weight: bold;
+            font-size: 15px;
+            color: #222;
+        }
+
+        .day-card label .sub {
+            display: block;
+            margin-top: 4px;
+            font-size: 13px;
+            color: #666;
+        }
+
+        .day-card input:checked + label {
+            background: #dff5df;
+            border-color: green;
+        }
+
+        .slots {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .slot-card label {
+            display: inline-block;
+            padding: 12px 16px;
+            border: 1px solid #ccc;
+            border-radius: 12px;
+            background: #fafafa;
+            cursor: pointer;
+            transition: 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .slot-card.available label {
+            background: #e6ffed;
+            border-color: #4caf50;
+            color: #1b5e20;
+        }
+
+        .slot-card.booked label {
+            background: #ffe7e7;
+            border-color: #d32f2f;
+            color: #7f1d1d;
+            cursor: not-allowed;
+            opacity: 0.75;
+        }
+
+        .slot-card input:checked + label {
+            background: #dff5df;
+            border-color: green;
+            font-weight: bold;
+        }
+
+        button {
+            margin-top: 28px;
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            background: #111;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            opacity: 0.95;
+        }
+
+        .field-group {
+            margin-bottom: 16px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 18px;
+            }
+
+            .day-card label {
+                min-width: 95px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h1>Welcome to the Booking App</h1>
-    <p>This will be used to book football & paddle fields.</p>
+    <div class="container">
+        <h1>Book a Field</h1>
+        <p>Select your sport, choose a day, then pick a time slot.</p>
+
+        <form action="/book" method="POST">
+
+            <div class="field-group">
+                <label for="name">Full Name</label>
+                <input type="text" id="name" name="name" placeholder="Enter your full name" required>
+            </div>
+
+            <div class="field-group">
+                <label for="phone">Phone Number</label>
+                <input type="text" id="phone" name="phone" placeholder="Enter your phone number" required>
+            </div>
+
+            <div class="field-group">
+                <label for="sport">Sport</label>
+                <select id="sport" name="sport" required>
+                    <option value="">Select sport</option>
+                    <option value="Football">Football</option>
+                    <option value="Padel">Padel</option>
+                </select>
+            </div>
+
+            <h3>Select a Day</h3>
+            <div class="day-scroll">
+                {% for day in days %}
+                    <div class="day-card">
+                        <input
+                            type="radio"
+                            id="day{{ loop.index }}"
+                            name="date"
+                            value="{{ day.value }}"
+                            {% if loop.first %}checked{% endif %}
+                            required
+                        >
+                        <label for="day{{ loop.index }}">
+                            <span class="main">{{ day.main_label }}</span>
+                            <span class="sub">{{ day.sub_label }}</span>
+                        </label>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <h3>Select a Time Slot</h3>
+            <div class="slots">
+                {% for slot in slots %}
+                    <div class="slot-card {{ 'available' if slot.available else 'booked' }}">
+                        <input
+                            type="radio"
+                            id="slot{{ loop.index }}"
+                            name="slot"
+                            value="{{ slot.label }}"
+                            {% if not slot.available %}disabled{% endif %}
+                            required
+                        >
+                        <label for="slot{{ loop.index }}">{{ slot.label }}</label>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <button type="submit">Send Reservation</button>
+        </form>
+    </div>
 </body>
 </html>
